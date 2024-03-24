@@ -6,7 +6,7 @@ from Standard.Google_Api import all
 from Standard.Snowflake import all
 import Standard.Visualization
 
-download_extract url event_details =
+download_extract url event_details limit=Nothing =
     IO.println "Fetching "+url.to_text
     operator50103 = Data.fetch url
     IO.println "Done fetching "+url.to_text
@@ -21,7 +21,10 @@ download_extract url event_details =
     operator48961 = operator86202.filter Filter_Condition.Not_Nothing
     operator40434 = operator48961.map m-> m.at 1
     operator14852 = operator40434.distinct
-    operator14852
+
+    if limit.is_nothing then operator14852 else
+        n = Integer.parse limit.to_text
+        operator14852 . take n
 
 download_results competition =
     IO.println "Fetching "+competition.to_text
@@ -29,10 +32,10 @@ download_results competition =
     IO.println "Done fetching "+competition.to_text
     html_text = operator32357.decode_as_text
     operator36399 = html_text.contains "No results found for this competition."
-    operator16594 = operator36399.if_then_else "No Results" (Main.parse_results html_text)
+    operator16594 = operator36399.if_then_else "No Results" (Main.parse_results competition html_text)
     operator16594
 
-parse_results html_text =
+parse_results competition html_text =
     operator1419 = html_text.lines
     operator29807 = operator1419.find t-> t.contains "<title>"
     operator80108 = operator29807.replace (regex "</?title>") ''
@@ -78,10 +81,17 @@ parse_results html_text =
     operator33244 = operator93423.join operator29547 Join_Kind.Inner [(Join_Condition.Equals 'Field')]
     operator24575 = operator33244.cross_tab ['RowID'] 'Value' (Aggregate_Column.First 'Values')
     operator24493 = operator24575.set operator80108 'Event Name'
-    operator42758 = operator24493.set operator80228 'Date'
-    operator42758
+    table = operator24493.set operator80228 'Date'
 
-main =
+    competition_name = "race-" + (competition.split "=" . last) + ".csv"
+    single_file = enso_project.data/competition_name
+    result = table.write single_file
+
+    IO.println "Competition "+competition.to_text+" stored in "+result.to_text
+
+    table
+
+main limit=Nothing =
     file = enso_project.data/'FISResults2024.csv'
     season = "2024"
 
@@ -89,7 +99,8 @@ main =
 
     url = "https://www.fis-ski.com/DB/snowboard/alpine-snowboard/calendar-results.html?noselection=true&disciplinecode=SG%2CPGS%2CPSL%2CGS%2CSL%2CPRT&seasoncode="+season
     event_details = "https://www.fis-ski.com/DB/general/event-details.html"
-    operator40434 = Main.download_extract url event_details
+
+    operator40434 = Main.download_extract url event_details limit
     operator93261 = Main.download_extract _ "https://www.fis-ski.com/DB/general/results.html"
     operator23138 = operator40434.flat_map operator93261
     operator32661 = operator23138.map Main.download_results Problem_Behavior.Ignore
