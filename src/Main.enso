@@ -82,7 +82,11 @@ parse_results operator18222 =
     operator42758
 
 main =
+    file = enso_project.data/'FISResults2024.csv'
     season = "2024"
+
+    IO.println "Downloading snowboarding "+season.to_text+" into "+file.to_text
+
     url = "https://www.fis-ski.com/DB/snowboard/alpine-snowboard/calendar-results.html?noselection=true&disciplinecode=SG%2CPGS%2CPSL%2CGS%2CSL%2CPRT&seasoncode="+season
     event_details = "https://www.fis-ski.com/DB/general/event-details.html"
     operator40434 = Main.download_extract url event_details
@@ -98,5 +102,5 @@ main =
     operator13633 = operator21858.parse
     operator62651 = operator2795.filter p->p.first.is_nothing
     operator88386 = operator62651.map .second
-    operator73777 = operator13633.write enso_project.data/'FISResults2024.csv'
-
+    result = operator13633.write file
+    IO.println "Finished "+result.to_text
