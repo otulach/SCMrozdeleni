@@ -27,13 +27,13 @@ download_results competition =
     IO.println "Fetching "+competition.to_text
     operator32357 = Data.fetch competition
     IO.println "Done fetching "+competition.to_text
-    operator18222 = operator32357.decode_as_text
-    operator36399 = operator18222.contains "No results found for this competition."
-    operator16594 = operator36399.if_then_else "No Results" (Main.parse_results operator18222)
+    html_text = operator32357.decode_as_text
+    operator36399 = html_text.contains "No results found for this competition."
+    operator16594 = operator36399.if_then_else "No Results" (Main.parse_results html_text)
     operator16594
 
-parse_results operator18222 =
-    operator1419 = operator18222.lines
+parse_results html_text =
+    operator1419 = html_text.lines
     operator29807 = operator1419.find t-> t.contains "<title>"
     operator80108 = operator29807.replace (regex "</?title>") ''
     operator45914 = operator1419.find t-> t.contains 'class=\"date__short\"'
