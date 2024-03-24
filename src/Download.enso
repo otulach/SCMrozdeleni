@@ -32,7 +32,7 @@ download_results competition =
     IO.println "Done fetching "+competition.to_text
     html_text = operator32357.decode_as_text
     operator36399 = html_text.contains "No results found for this competition."
-    operator16594 = operator36399.if_then_else "No Results" (Main.parse_results competition html_text)
+    operator16594 = operator36399.if_then_else "No Results" (Download.parse_results competition html_text)
     operator16594
 
 parse_results competition html_text =
@@ -100,10 +100,10 @@ main limit=Nothing =
     url = "https://www.fis-ski.com/DB/snowboard/alpine-snowboard/calendar-results.html?noselection=true&disciplinecode=SG%2CPGS%2CPSL%2CGS%2CSL%2CPRT&seasoncode="+season
     event_details = "https://www.fis-ski.com/DB/general/event-details.html"
 
-    operator40434 = Main.download_extract url event_details limit
-    operator93261 = Main.download_extract _ "https://www.fis-ski.com/DB/general/results.html"
+    operator40434 = Download.download_extract url event_details limit
+    operator93261 = Download.download_extract _ "https://www.fis-ski.com/DB/general/results.html"
     operator23138 = operator40434.flat_map operator93261
-    operator32661 = operator23138.map Main.download_results Problem_Behavior.Ignore
+    operator32661 = operator23138.map Download.download_results Problem_Behavior.Ignore
     operator2795 = operator32661.zip operator23138
     operator7141 = operator2795.filter p->p.first.is_nothing.not
     operator97472 = operator7141.filter p-> p.first != "No Results"
