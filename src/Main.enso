@@ -107,7 +107,7 @@ main limit=Nothing =
     operator2795 = operator32661.zip operator23138
     operator7141 = operator2795.filter p->p.first.is_nothing.not
     operator97472 = operator7141.filter p-> p.first != "No Results"
-    operator97598 = operator97472.map p-> p.first.set p.second "URL"
+    operator97598 = operator97472.map p-> p.first.set (p.second.split "=" . last) "RaceID"
     operator93079 = operator97598.map t-> t.rename_columns (t.column_names.map .trim)
     operator21858 = Table.from_union operator93079 Match_Columns.By_Name Boolean.True
     operator13633 = operator21858.parse
