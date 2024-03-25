@@ -6,21 +6,21 @@ from Standard.Google_Api import all
 from Standard.Snowflake import all
 import Standard.Visualization
 
-download_extract url event_details (limit=Nothing:Nothing|Integer) =
+download_extract url url_prefix (limit=Nothing:Nothing|Integer) =
     IO.println "Fetching "+url.to_text
     operator50103 = Data.fetch url
     IO.println "Done fetching "+url.to_text
     operator64062 = operator50103.decode_as_text
     operator39794 = operator64062.lines
-    operator75987 = 'href="('+event_details+'[^\"]+)[^>]*>'
+    operator75987 = 'href="('+url_prefix+'[^\"]+)[^>]*>'
     operator15026 = operator75987.to_regex
-    operator42699 = operator39794.filter (Filter_Condition.Contains event_details)
+    operator42699 = operator39794.filter (Filter_Condition.Contains url_prefix)
     operator52211 = operator15026.match
     operator96845 = operator42699.map operator52211
     operator86202 = operator96845.distinct
     operator48961 = operator86202.filter Filter_Condition.Not_Nothing
-    operator40434 = operator48961.map m-> m.at 1
-    operator14852 = operator40434.distinct
+    event_list = operator48961.map m-> m.at 1
+    operator14852 = event_list.distinct
 
     if limit.is_nothing then operator14852 else
         operator14852 . take limit
@@ -97,13 +97,12 @@ download (limit:Nothing|Integer) =
     IO.println "Downloading snowboarding "+season.to_text+" into "+file.to_text
 
     url = "https://www.fis-ski.com/DB/snowboard/alpine-snowboard/calendar-results.html?noselection=true&disciplinecode=SG%2CPGS%2CPSL%2CGS%2CSL%2CPRT&seasoncode="+season
-    event_details = "https://www.fis-ski.com/DB/general/event-details.html"
 
-    operator40434 = Download.download_extract url event_details limit
-    operator93261 = Download.download_extract _ "https://www.fis-ski.com/DB/general/results.html"
-    operator23138 = operator40434.flat_map operator93261
-    operator32661 = operator23138.map Download.download_results Problem_Behavior.Ignore
-    operator2795 = operator32661.zip operator23138
+    event_list = Download.download_extract url "https://www.fis-ski.com/DB/general/event-details.html" limit
+    race_list = event_list.flat_map ev->
+        Download.download_extract ev "https://www.fis-ski.com/DB/general/results.html"
+    operator32661 = race_list.map Download.download_results Problem_Behavior.Ignore
+    operator2795 = operator32661.zip race_list
     operator7141 = operator2795.filter p->p.first.is_nothing.not
     operator97472 = operator7141.filter p-> p.first != "No Results"
     operator97598 = operator97472.map p-> p.first.set (p.second.split "=" . last) "RaceID"
