@@ -6,7 +6,7 @@ from Standard.Google_Api import all
 from Standard.Snowflake import all
 import Standard.Visualization
 
-download_extract url event_details limit=Nothing =
+download_extract url event_details (limit=Nothing:Nothing|Integer) =
     IO.println "Fetching "+url.to_text
     operator50103 = Data.fetch url
     IO.println "Done fetching "+url.to_text
@@ -23,13 +23,12 @@ download_extract url event_details limit=Nothing =
     operator14852 = operator40434.distinct
 
     if limit.is_nothing then operator14852 else
-        n = Integer.parse limit.to_text
-        operator14852 . take n
+        operator14852 . take limit
 
 download_results competition =
-    IO.println "Fetching "+competition.to_text
+    IO.println "Competition Fetching "+competition.to_text
     operator32357 = Data.fetch competition
-    IO.println "Done fetching "+competition.to_text
+    IO.println "Competition Done fetching "+competition.to_text
     html_text = operator32357.decode_as_text
     operator36399 = html_text.contains "No results found for this competition."
     operator16594 = operator36399.if_then_else "No Results" (Download.parse_results competition html_text)
@@ -91,7 +90,7 @@ parse_results competition html_text =
 
     table
 
-main limit=Nothing =
+download (limit:Nothing|Integer) =
     file = enso_project.data/'FISResults2024.csv'
     season = "2024"
 
@@ -115,3 +114,6 @@ main limit=Nothing =
     operator88386 = operator62651.map .second
     result = operator13633.write file
     IO.println "Finished "+result.to_text
+
+main limit=Nothing =
+    download limit
