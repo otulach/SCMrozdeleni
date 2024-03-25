@@ -31,10 +31,11 @@ type Page
         Page.Info url text refs
 
 type Race
-    Info event:Text race:Text ~results:Table
+    Info event:Page race:Text ~results:Table
 
 
-download_results competition =
+download_results event:Page race:Text =
+    competition = race
     IO.println "Competition Fetching "+competition.to_text
     operator32357 = Data.fetch competition
     IO.println "Competition Done fetching "+competition.to_text
@@ -108,9 +109,9 @@ download (limit:Nothing|Integer) =
     url = "https://www.fis-ski.com/DB/snowboard/alpine-snowboard/calendar-results.html?noselection=true&disciplinecode=SG%2CPGS%2CPSL%2CGS%2CSL%2CPRT&seasoncode="+season
 
     event_list = Page.download_extract url "https://www.fis-ski.com/DB/general/event-details.html" limit
-    race_info_list = event_list.refs.flat_map ev->
-        races = Page.download_extract ev "https://www.fis-ski.com/DB/general/results.html"
-        races.refs.map (r -> Race.Info ev r (Download.download_results r))
+    race_info_list = event_list.refs.flat_map ev_url->
+        ev = Page.download_extract ev_url "https://www.fis-ski.com/DB/general/results.html"
+        ev.refs.map (r -> Race.Info ev r (Download.download_results ev r))
 
     operator7141 = race_info_list.filter p->p.results.is_nothing.not
     operator97472 = operator7141.filter p-> p.results != "No Results"
