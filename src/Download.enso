@@ -6,6 +6,9 @@ from Standard.Google_Api import all
 from Standard.Snowflake import all
 import Standard.Visualization
 
+type Race
+    Info event:Text race:Text
+
 download_extract url url_prefix (limit=Nothing:Nothing|Integer) =
     IO.println "Fetching "+url.to_text
     operator50103 = Data.fetch url
@@ -99,8 +102,12 @@ download (limit:Nothing|Integer) =
     url = "https://www.fis-ski.com/DB/snowboard/alpine-snowboard/calendar-results.html?noselection=true&disciplinecode=SG%2CPGS%2CPSL%2CGS%2CSL%2CPRT&seasoncode="+season
 
     event_list = Download.download_extract url "https://www.fis-ski.com/DB/general/event-details.html" limit
-    race_list = event_list.flat_map ev->
-        Download.download_extract ev "https://www.fis-ski.com/DB/general/results.html"
+    race_info_list = event_list.flat_map ev->
+        races = Download.download_extract ev "https://www.fis-ski.com/DB/general/results.html"
+        races.map (r -> Race.Info ev r)
+
+    race_list = race_info_list.map .race
+
     operator32661 = race_list.map Download.download_results Problem_Behavior.Ignore
     operator2795 = operator32661.zip race_list
     operator7141 = operator2795.filter p->p.first.is_nothing.not
