@@ -6,27 +6,33 @@ from Standard.Google_Api import all
 from Standard.Snowflake import all
 import Standard.Visualization
 
+type Page
+    Info url:Text text:Text refs:(Vector Text)
+
+    download_extract url url_prefix (limit=Nothing:Nothing|Integer) =
+        IO.println "Fetching "+url.to_text
+        operator50103 = Data.fetch url
+        IO.println "Done fetching "+url.to_text
+        text = operator50103.decode_as_text
+        operator39794 = text.lines
+        operator75987 = 'href="('+url_prefix+'[^\"]+)[^>]*>'
+        operator15026 = operator75987.to_regex
+        operator42699 = operator39794.filter (Filter_Condition.Contains url_prefix)
+        operator52211 = operator15026.match
+        operator96845 = operator42699.map operator52211
+        operator86202 = operator96845.distinct
+        operator48961 = operator86202.filter Filter_Condition.Not_Nothing
+        event_list = operator48961.map m-> m.at 1
+        operator14852 = event_list.distinct
+
+        refs = if limit.is_nothing then operator14852 else
+            operator14852 . take limit
+
+        Page.Info url text refs
+
 type Race
     Info event:Text race:Text ~results:Table
 
-download_extract url url_prefix (limit=Nothing:Nothing|Integer) =
-    IO.println "Fetching "+url.to_text
-    operator50103 = Data.fetch url
-    IO.println "Done fetching "+url.to_text
-    operator64062 = operator50103.decode_as_text
-    operator39794 = operator64062.lines
-    operator75987 = 'href="('+url_prefix+'[^\"]+)[^>]*>'
-    operator15026 = operator75987.to_regex
-    operator42699 = operator39794.filter (Filter_Condition.Contains url_prefix)
-    operator52211 = operator15026.match
-    operator96845 = operator42699.map operator52211
-    operator86202 = operator96845.distinct
-    operator48961 = operator86202.filter Filter_Condition.Not_Nothing
-    event_list = operator48961.map m-> m.at 1
-    operator14852 = event_list.distinct
-
-    if limit.is_nothing then operator14852 else
-        operator14852 . take limit
 
 download_results competition =
     IO.println "Competition Fetching "+competition.to_text
@@ -101,10 +107,10 @@ download (limit:Nothing|Integer) =
 
     url = "https://www.fis-ski.com/DB/snowboard/alpine-snowboard/calendar-results.html?noselection=true&disciplinecode=SG%2CPGS%2CPSL%2CGS%2CSL%2CPRT&seasoncode="+season
 
-    event_list = Download.download_extract url "https://www.fis-ski.com/DB/general/event-details.html" limit
-    race_info_list = event_list.flat_map ev->
-        races = Download.download_extract ev "https://www.fis-ski.com/DB/general/results.html"
-        races.map (r -> Race.Info ev r (Download.download_results r))
+    event_list = Page.download_extract url "https://www.fis-ski.com/DB/general/event-details.html" limit
+    race_info_list = event_list.refs.flat_map ev->
+        races = Page.download_extract ev "https://www.fis-ski.com/DB/general/results.html"
+        races.refs.map (r -> Race.Info ev r (Download.download_results r))
 
     operator7141 = race_info_list.filter p->p.results.is_nothing.not
     operator97472 = operator7141.filter p-> p.results != "No Results"
