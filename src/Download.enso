@@ -7,7 +7,7 @@ from Standard.Snowflake import all
 import Standard.Visualization
 
 type Race
-    Info event:Text race:Text
+    Info event:Text race:Text ~results:Table
 
 download_extract url url_prefix (limit=Nothing:Nothing|Integer) =
     IO.println "Fetching "+url.to_text
@@ -34,7 +34,7 @@ download_results competition =
     IO.println "Competition Done fetching "+competition.to_text
     html_text = operator32357.decode_as_text
     operator36399 = html_text.contains "No results found for this competition."
-    operator16594 = operator36399.if_then_else "No Results" (Download.parse_results competition html_text)
+    operator16594 = operator36399.if_then_else (Error.throw "No Results") (Download.parse_results competition html_text)
     operator16594
 
 parse_results competition html_text =
@@ -94,8 +94,8 @@ parse_results competition html_text =
     table
 
 download (limit:Nothing|Integer) =
-    file = enso_project.data/'FISResults2024.csv'
     season = "2024"
+    file = enso_project.data / 'FISResults'+season+'.csv'
 
     IO.println "Downloading snowboarding "+season.to_text+" into "+file.to_text
 
@@ -104,20 +104,16 @@ download (limit:Nothing|Integer) =
     event_list = Download.download_extract url "https://www.fis-ski.com/DB/general/event-details.html" limit
     race_info_list = event_list.flat_map ev->
         races = Download.download_extract ev "https://www.fis-ski.com/DB/general/results.html"
-        races.map (r -> Race.Info ev r)
+        races.map (r -> Race.Info ev r (Download.download_results r))
 
-    race_list = race_info_list.map .race
-
-    operator32661 = race_list.map Download.download_results Problem_Behavior.Ignore
-    operator2795 = operator32661.zip race_list
-    operator7141 = operator2795.filter p->p.first.is_nothing.not
-    operator97472 = operator7141.filter p-> p.first != "No Results"
-    operator97598 = operator97472.map p-> p.first.set (p.second.split "=" . last) "RaceID"
+    operator7141 = race_info_list.filter p->p.results.is_nothing.not
+    operator97472 = operator7141.filter p-> p.results != "No Results"
+    operator97598 = operator97472.map p-> p.results.set (p.race.split "=" . last) "RaceID"
     operator93079 = operator97598.map t-> t.rename_columns (t.column_names.map .trim)
     operator21858 = Table.from_union operator93079 Match_Columns.By_Name Boolean.True
     operator13633 = operator21858.parse
-    operator62651 = operator2795.filter p->p.first.is_nothing
-    operator88386 = operator62651.map .second
+    operator62651 = race_info_list.filter p->p.results.is_nothing
+    operator88386 = operator62651.map .event
     result = operator13633.write file
     IO.println "Finished "+result.to_text
 
