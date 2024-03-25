@@ -40,9 +40,9 @@ download_results event:Page race:Text =
     operator32357 = Data.fetch competition
     IO.println "Competition Done fetching "+competition.to_text
     html_text = operator32357.decode_as_text
-    operator36399 = html_text.contains "No results found for this competition."
-    operator16594 = operator36399.if_then_else (Error.throw "No Results") (Download.parse_results competition html_text)
-    operator16594
+    res = if html_text.contains "No results found for this competition." then Error.throw "No Results" else
+        Download.parse_results competition html_text
+    res
 
 parse_results competition html_text =
     operator1419 = html_text.lines
