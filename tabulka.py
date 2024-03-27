@@ -76,10 +76,6 @@ def dejbody(misto, pocetlidi, typ):
 assert dejbody(1, 25, "WC") == 40, "Nefunguje WC"   
 assert dejbody(8, 14, "FIS") == 0, "Neni v prvni pulce"
 
-tabulkastypy = pd.read_excel('SCMnove.xlsx')
-tabulkastypy["Type"] = tabulkastypy["Type"].astype(str)
-tabulkastypy["Rank"] = tabulkastypy["Rank"].astype(int)    
-
 def oboduj(tabulkastypy):
     body = []
     for i in range(tabulkastypy.shape[0]):
@@ -114,7 +110,6 @@ finalni = pd.DataFrame(finalni._append(filtruj("JECHOVA Linda"),
 finalni = pd.DataFrame(finalni._append(filtruj("ZVIRECI Martina"), 
                   ignore_index = True))
 
-tabulkastypy = oboduj(tabulkastypy)
 
 finalni["Rank"] = finalni["Rank"].fillna(0)
 finalni = udelejtyp(finalni)
@@ -124,7 +119,7 @@ finalni = oboduj(finalni)
 print(finalni)
 
 finalni.to_excel("FullAutoSCM.xlsx")
-tabulkastypy.to_excel("SCMnoveAutomaticke.xlsx")
+
 
 
 
