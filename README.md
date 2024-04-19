@@ -20,4 +20,6 @@ $ ls enso
 bin  dist  README.md  runtime  THIRD-PARTY
 $ ./enso/bin/enso
 $ ./enso/bin/enso run src/Download.enso
+# downloads all the data and updates files in data directory
+$ git status data/*.csv
 ```
