@@ -4,5 +4,4 @@ version: 0.0.1
 license: ''
 authors: []
 maintainers: []
-edition: 0.0.0-dev
 prefer-local-libraries: true

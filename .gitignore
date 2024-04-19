@@ -1,1 +1,4 @@
 .enso
+enso
+enso-bundle-*.gz
+*.bak
