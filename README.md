@@ -6,7 +6,7 @@ and to process them further.
 ## Download
 
 To dowload one needs an installation of the [Enso Engine](http://enso.org) for
-your operating system. Daily [version from Mar 26, 2024](https://github.com/enso-org/enso/releases/download/2024.1.1-nightly.2024.4.19/)
+your operating system. Daily [version from Apr 19, 2024](https://github.com/enso-org/enso/releases/download/2024.1.1-nightly.2024.4.19/)
 is known to work. If on Linux download [enso-bundle-2024.1.1-nightly.2024.4.19-linux-amd64.tar.gz](https://github.com/enso-org/enso/releases/download/2024.1.1-nightly.2024.4.19/enso-bundle-2024.1.1-nightly.2024.4.19-linux-amd64.tar.gz):
 
 ```bash
