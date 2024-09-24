@@ -1,10 +1,14 @@
 from Standard.Base import all
+import Standard.Base.System.Input_Stream.Input_Stream
 from Standard.Table import all
 from Standard.Database import all
 from Standard.AWS import all
 from Standard.Google_Api import all
 from Standard.Snowflake import all
 import Standard.Visualization
+
+polyglot java import org.w3c.tidy.Tidy
+polyglot java import java.io.StringReader
 
 type Page
     Info url:Text text:Text refs:(Vector Text)
@@ -33,6 +37,12 @@ type Page
 type Race
     Info event:Page race:Text ~results
 
+xml_from_text text:Text -> XML_Document =
+    r = StringReader.new text
+    parser = Tidy.new
+    parser.setXHTML True
+    dom = parser.parseDOM r Nothing
+    XML_Document.new dom
 
 download_results event:Page race:Text =
     competition = race
@@ -74,13 +84,13 @@ parse_results competition html_text =
     operator38009 = operator27041.filter 'Row' (Filter_Condition.Less operator710)
     operator42986 = operator38009.aggregate [] [Aggregate_Column.Concatenate separator='']
     operator91376 = operator42986.get_value
-    operator84213 = XML_Document.from_text (operator91376.replace "<br>" " " . replace "&nbsp;" " " . replace (regex "<!--.*?-->") "")
+    operator84213 = xml_from_text (operator91376.replace "<br>" " " . replace "&nbsp;" " " . replace (regex "<!--.*?-->") "")
     operator2194 = operator84213.get_xpath 'div/div/div/div/div'
     operator80016 = operator2194.map n-> n.text.trim
     operator88173 = operator80016.to_table
     operator29547 = operator88173.add_row_number 'Field'
     operator76232 = operator16709.to_vector
-    operator18288 = operator76232.map (t-> XML_Document.from_text (t.replace "<br>" " " . replace "&nbsp;" " " . replace "&nbsp" " " . replace (regex "<!--.*?-->") ""))
+    operator18288 = operator76232.map (t-> xml_from_text (t.replace "<br>" " " . replace "&nbsp;" " " . replace "&nbsp" " " . replace (regex "<!--.*?-->") ""))
     operator17654 = operator18288.map operator34690
     operator87908 = operator17654.map t->(if t == "" then Nothing else t)
     operator9307 = operator93440.set operator87908 'Values'
@@ -102,7 +112,7 @@ parse_results competition html_text =
 
 download (limit:Nothing|Integer) =
     season = "2024"
-    file = enso_project.data / 'FISResults'+season+'.csv'
+    file = enso_project.data / ('FISResults'+season+'.csv')
 
     IO.println "Downloading snowboarding "+season.to_text+" into "+file.to_text
 
@@ -116,7 +126,7 @@ download (limit:Nothing|Integer) =
     valid_races = race_info_list.filter p->p.results.is_nothing.not
     with_race_ids = valid_races.map p-> p.results.set (p.race.split "=" . last) "RaceID"
     operator93079 = with_race_ids.map t-> t.rename_columns (t.column_names.map .trim)
-    operator21858 = Table.from_union operator93079 Match_Columns.By_Name Boolean.True
+    operator21858 = Table.from_union operator93079 match_columns=Match_Columns.By_Name
     operator13633 = operator21858.parse
     operator62651 = race_info_list.filter p->p.results.is_nothing
     operator88386 = operator62651.map .event
