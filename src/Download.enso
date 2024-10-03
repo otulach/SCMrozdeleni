@@ -102,7 +102,7 @@ parse_results competition html_text =
 
 download (limit:Nothing|Integer) =
     season = "2024"
-    file = enso_project.data / 'FISResults'+season+'.csv'
+    file = enso_project.data / ('FISResults'+season+'.csv')
 
     IO.println "Downloading snowboarding "+season.to_text+" into "+file.to_text
 
@@ -116,7 +116,7 @@ download (limit:Nothing|Integer) =
     valid_races = race_info_list.filter p->p.results.is_nothing.not
     with_race_ids = valid_races.map p-> p.results.set (p.race.split "=" . last) "RaceID"
     operator93079 = with_race_ids.map t-> t.rename_columns (t.column_names.map .trim)
-    operator21858 = Table.from_union operator93079 Match_Columns.By_Name Boolean.True
+    operator21858 = Table.from_union operator93079 match_columns=..By_Name ..In_Any_Warn_On_Missing
     operator13633 = operator21858.parse
     operator62651 = race_info_list.filter p->p.results.is_nothing
     operator88386 = operator62651.map .event
